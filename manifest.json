@@ -1,9 +1,9 @@
 {
   "id": "questify-rpg",
   "name": "Questify RPG",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "minAppVersion": "1.5.0",
-  "description": "Responsive personal quest dashboard with editable quests, achievements, XP progression and a 100-quest library.",
+  "description": "Track personal quests, earn XP, level up, and manage achievements in Obsidian.",
   "author": "Questify",
   "isDesktopOnly": false
 }

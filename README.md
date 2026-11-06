@@ -1,30 +1,36 @@
-# Questify RPG 2.0
+# Questify RPG 2.1.0
 
-This build replaces the dashboard visualization with the visual structure from the supplied Questify RPG v3.0:
-- adventure header and profile panel
-- level badge and XP progress bar
-- three summary cards
-- primary action row
-- separate active and completed quest sections
-- achievement cards
+Questify RPG is an Obsidian plugin that turns personal goals into quests with XP progression.
 
-Removed from the old structure: character classes, skills, automatic daily quest rotation, and automatic fixed achievements.
+## Features
+- Personal profile with editable name and avatar.
+- Create, edit, complete, reactivate, and delete quests.
+- Every quest awards exactly 10 XP, only once.
+- Reactivating a completed quest does not award XP again.
+- Level N to N+1 requires N × 50 XP.
+- Completion history grouped by date.
+- Deleting a quest that already awarded XP refunds those 10 XP.
+- Create, edit, delete, and unlock custom achievements.
+- Searchable library of quest templates.
+- Data is stored locally by Obsidian through the plugin data API.
 
-New rules:
-- Every quest gives exactly 10 XP once.
-- Reactivating a completed quest does not grant XP again.
-- Level N requires N × 50 XP to advance from level N to N+1.
-- Quests and achievements can be created, edited, completed/toggled, and deleted.
-- The 100 quest templates from the v3.0 daily quest catalogue are retained as a searchable manual library.
-- Profile name and avatar can be edited; profile/progress can be reset.
-- Data is saved in Obsidian plugin data.
+## Installation
 
-Install by copying the `questify-rpg` folder into `.obsidian/plugins/` and enabling it in Community plugins. No build step is required.
+### Manual installation
+1. Create a folder named `questify-rpg` inside your vault's `.obsidian/plugins/` directory.
+2. Copy `main.js`, `manifest.json`, and `styles.css` into that folder.
+3. Restart or reload Obsidian.
+4. Open **Settings → Community plugins** and enable **Questify RPG**.
 
+### From a GitHub release
+Download `main.js`, `manifest.json`, and `styles.css` from the matching GitHub Release and place them in `.obsidian/plugins/questify-rpg/`.
 
-## Version 2.1 changes
-- The dashboard's Library action is now **History**.
-- History groups currently completed quests by completion date (DD.MM.YYYY), showing the day's count and earned XP.
-- Reactivating a quest removes it from completed history; completing it again does not award XP again.
-- Deleting a quest that has already claimed its 10 XP refunds those 10 XP from the total.
-- Completed quests from older data without a completion timestamp use their creation date as a best-effort historical date.
+## Version 2.1.0
+- Replaced the dashboard Library action with History.
+- History groups completed quests by completion date and shows daily count and earned XP.
+- Reactivating a quest removes it from completed history; its XP reward remains claimed.
+- Deleting a quest that already claimed its 10 XP refunds those 10 XP.
+- Older completed quests without a completion timestamp use their creation date as a best-effort historical date.
+
+## Development
+This repository contains the ready-to-run plugin files. No build step is required.

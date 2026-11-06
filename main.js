@@ -140,8 +140,8 @@ class QuestifyView extends ItemView {
   async onClose() {}
 
   render() {
-    // Use the same root/container pattern as the supplied v3.0 visualization.
-    const root = this.containerEl;
+    // Render inside the view content area, leaving Obsidian's view header intact.
+    const root = this.contentEl;
     root.empty();
     root.addClass("questify-root");
     const d = this.plugin.data;
@@ -368,7 +368,7 @@ class QuestLibraryModal extends Modal {
   renderList(list) {
     list.empty();
     const term = this.search.trim().toLowerCase();
-    const matches = QUEST_LIBRARY.filter(q =>
+    const matches = DAILY_QUEST_TEMPLATES.filter(q =>
       `${q.title} ${q.description}`.toLowerCase().includes(term));
     if (!matches.length) {
       list.createDiv({ cls: "q-empty", text: "Ничего не найдено." });
