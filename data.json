@@ -1,0 +1,56 @@
+{
+  "username": "Ежик",
+  "avatar": "🦔",
+  "totalXp": 40,
+  "quests": [
+    {
+      "id": "mw4mga4n-nwhztfw",
+      "title": "Ходьба",
+      "description": "",
+      "completed": false,
+      "rewardClaimed": true,
+      "source": "custom",
+      "completedAt": null,
+      "createdAt": "2026-11-06T06:57:00.743Z"
+    },
+    {
+      "id": "mw3ywkgt-khkfs7i",
+      "title": "Почитать книгу",
+      "description": "",
+      "completed": false,
+      "rewardClaimed": true,
+      "source": "custom",
+      "completedAt": null,
+      "createdAt": "2026-11-05T19:57:49.853Z"
+    },
+    {
+      "id": "mw3yt8tl-ey1totv",
+      "title": "Ходьба",
+      "description": "Прошел 11.500",
+      "completed": true,
+      "rewardClaimed": true,
+      "source": "custom",
+      "completedAt": "2026-11-05T19:55:29.568Z",
+      "createdAt": "2026-11-05T19:55:14.793Z"
+    },
+    {
+      "id": "mw3yjoyu-sre1ez6",
+      "title": "Почитать книгу",
+      "description": "19 абзацев.",
+      "completed": true,
+      "rewardClaimed": true,
+      "source": "custom",
+      "completedAt": "2026-11-05T19:54:56.218Z",
+      "createdAt": "2026-11-05T19:47:49.158Z"
+    }
+  ],
+  "achievements": [
+    {
+      "id": "mw3yvm0n-ps72zgx",
+      "title": "Прочитать книгу",
+      "description": "Джордж Оруэлл - 1984",
+      "icon": "🏆",
+      "achieved": false
+    }
+  ]
+}
