@@ -8,7 +8,10 @@ const DEFAULT_DATA = {
   avatar: "✦",
   totalXp: 0,
   quests: [],
-  achievements: []
+  achievements: [],
+  questHistory: [],
+  completedTotal: 0,
+  lastCompletedCleanupDate: localDateKey()
 };
 
 const DAILY_QUEST_TEMPLATES = [
@@ -118,6 +121,13 @@ function makeId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function localDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function levelInfo(totalXp) {
   let remaining = Math.max(0, Number(totalXp) || 0);
   let level = 1;
@@ -167,7 +177,7 @@ class QuestifyView extends ItemView {
     xpBar.createDiv({ cls: "q-progress-fill" }).style.width =
       `${Math.min(100, (lvl.current / lvl.required) * 100)}%`;
 
-    const completedCount = d.quests.filter(q => q.completed).length;
+    const completedCount = d.completedTotal;
     const activeCount = d.quests.filter(q => !q.completed).length;
     const stats = root.createDiv({ cls: "q-stats" });
     this.statCard(stats, "Завершено", String(completedCount), "check-circle-2");
@@ -209,12 +219,10 @@ class QuestifyView extends ItemView {
     });
     addAchievement.addEventListener("click", () => new AchievementModal(this.app, this.plugin).open());
 
-    const achievements = root.createDiv({ cls: "q-achievements" });
-    if (!d.achievements.length) {
-      achievements.createDiv({ cls: "q-empty", text: "Создай собственные достижения и отмечай их получение." });
-    } else {
-      d.achievements.forEach(a => this.renderAchievement(achievements, a));
-    }
+    const unlockedAchievements = d.achievements.filter(a => a.achieved);
+    const lockedAchievements = d.achievements.filter(a => !a.achieved);
+    this.renderAchievementGroup(root, "Не полученные", lockedAchievements, "Все достижения уже получены.");
+    this.renderAchievementGroup(root, "Полученные", unlockedAchievements, "Пока нет полученных достижений.");
 
     root.createDiv({ cls: "q-footer", text: "Прогресс сохраняется локально в Obsidian." });
   }
@@ -257,6 +265,8 @@ class QuestifyView extends ItemView {
         }
         q.completed = true;
         q.completedAt = new Date().toISOString();
+        this.plugin.data.questHistory.push({ ...q });
+        this.plugin.data.completedTotal += 1;
       } else {
         q.completed = false;
         q.completedAt = null;
@@ -283,6 +293,14 @@ class QuestifyView extends ItemView {
 
   renderAchievement(parent, a) {
     const item = parent.createDiv({ cls: `q-achievement ${a.achieved ? "is-unlocked" : ""}` });
+    item.dataset.achievementId = a.id;
+    item.setAttribute("draggable", "true");
+    item.addEventListener("dragstart", event => {
+      event.dataTransfer?.setData("text/plain", a.id);
+      if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+      item.addClass("is-dragging");
+    });
+    item.addEventListener("dragend", () => item.removeClass("is-dragging"));
     item.createDiv({ cls: "q-achievement-icon", text: a.icon || "◇" });
     const copy = item.createDiv({ cls: "q-achievement-copy" });
     copy.createDiv({ cls: "q-achievement-title", text: a.title });
@@ -308,6 +326,45 @@ class QuestifyView extends ItemView {
       await this.plugin.saveProgress();
       this.render();
     });
+  }
+
+  renderAchievementGroup(parent, title, achievements, emptyText) {
+    const heading = parent.createDiv({ cls: "q-achievement-group-title" });
+    heading.createSpan({ text: title });
+    heading.createSpan({ cls: "q-achievement-count", text: String(achievements.length) });
+    const list = parent.createDiv({ cls: "q-achievements" });
+    list.addEventListener("dragover", event => {
+      event.preventDefault();
+      list.addClass("is-drop-target");
+    });
+    list.addEventListener("dragleave", event => {
+      if (!list.contains(event.relatedTarget)) list.removeClass("is-drop-target");
+    });
+    list.addEventListener("drop", async event => {
+      event.preventDefault();
+      list.removeClass("is-drop-target");
+      const id = event.dataTransfer?.getData("text/plain");
+      const all = this.plugin.data.achievements;
+      const from = all.findIndex(a => a.id === id);
+      if (from < 0) return;
+      const moved = all.splice(from, 1)[0];
+      moved.achieved = title === "Полученные";
+      const target = event.target.closest?.(".q-achievement");
+      const targetIndex = target ? all.findIndex(a => a.id === target.dataset.achievementId) : -1;
+      if (targetIndex >= 0) all.splice(targetIndex, 0, moved);
+      else {
+        const groupIndices = all.map((a, i) => a.achieved === moved.achieved ? i : -1).filter(i => i >= 0);
+        const insertAt = groupIndices.length ? groupIndices[groupIndices.length - 1] + 1 : (moved.achieved ? 0 : all.length);
+        all.splice(insertAt, 0, moved);
+      }
+      await this.plugin.saveProgress();
+      this.render();
+    });
+    if (!achievements.length) {
+      list.createDiv({ cls: "q-empty", text: emptyText });
+      return;
+    }
+    achievements.forEach(a => this.renderAchievement(list, a));
   }
 }
 
@@ -410,8 +467,8 @@ class CompletedHistoryModal extends Modal {
     contentEl.createEl("h2", { text: "История выполненных квестов" });
     contentEl.createEl("p", { text: "Здесь собраны квесты, которые ты завершил, сгруппированные по дням." });
 
-    const completed = this.plugin.data.quests
-      .filter(q => q.completed)
+    const completed = this.plugin.data.questHistory
+      .slice()
       .sort((a, b) => new Date(b.completedAt || b.createdAt || 0) - new Date(a.completedAt || a.createdAt || 0));
 
     if (!completed.length) {
@@ -532,6 +589,11 @@ module.exports = class QuestifyRPGPlugin extends Plugin {
       username: loaded.username || oldPlayer.name || DEFAULT_DATA.username,
       avatar: loaded.avatar || DEFAULT_DATA.avatar,
       totalXp: Number(loaded.totalXp ?? oldPlayer.totalXp ?? 0),
+      questHistory: Array.isArray(loaded.questHistory) ? loaded.questHistory : [],
+      completedTotal: Number(loaded.completedTotal ?? (Array.isArray(loaded.questHistory)
+        ? loaded.questHistory.length
+        : (Array.isArray(loaded.quests) ? loaded.quests.filter(q => q && (q.completed ?? q.done)).length : 0))),
+      lastCompletedCleanupDate: loaded.lastCompletedCleanupDate || "",
       quests: Array.isArray(loaded.quests) ? loaded.quests.map(q => ({
         id: q.id || makeId(),
         title: q.title || "Без названия",
@@ -549,6 +611,13 @@ module.exports = class QuestifyRPGPlugin extends Plugin {
           }))
         : []
     };
+    if (!Array.isArray(loaded.questHistory)) {
+      this.data.questHistory = this.data.quests.filter(q => q.completed).map(q => ({ ...q }));
+    }
+    if (this.data.lastCompletedCleanupDate !== localDateKey()) {
+      this.data.quests = this.data.quests.filter(q => !q.completed);
+      this.data.lastCompletedCleanupDate = localDateKey();
+    }
     // Old v3 stored unlocked achievement IDs. Those were class-era automatic badges;
     // the new system intentionally starts with user-editable achievement cards.
     this.registerView(VIEW_TYPE, leaf => new QuestifyView(leaf, this));
@@ -565,6 +634,7 @@ module.exports = class QuestifyRPGPlugin extends Plugin {
     });
     await this.saveProgress();
     this.activateView();
+    this.registerInterval(window.setInterval(() => this.cleanupCompletedQuests(), 60_000));
   }
 
   onunload() { this.app.workspace.detachLeavesOfType(VIEW_TYPE); }
@@ -583,7 +653,18 @@ module.exports = class QuestifyRPGPlugin extends Plugin {
     });
   }
 
+  async cleanupCompletedQuests() {
+    const today = localDateKey();
+    if (this.data.lastCompletedCleanupDate === today) return;
+    this.data.quests = this.data.quests.filter(q => !q.completed);
+    this.data.lastCompletedCleanupDate = today;
+    await this.saveProgress();
+    this.refreshView();
+  }
+
   async saveProgress() {
     await this.saveData(this.data);
   }
 };
+
+/* nosourcemap */

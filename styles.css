@@ -44,6 +44,11 @@
 .q-complete { margin-top: 9px; width: 100%; background: rgba(89,139,104,.15); color: var(--text-success); border: 1px solid rgba(89,139,104,.4); }
 .q-empty { color: var(--text-muted); border: 1px dashed var(--q-border); border-radius: 10px; padding: 14px; font-size: 11px; line-height: 1.5; text-align: center; }
 .q-achievements { display: flex; flex-direction: column; gap: 6px; }
+.q-achievement-group-title { display: flex; align-items: center; gap: 7px; margin: 10px 0 6px; color: var(--text-muted); font-size: 10px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+.q-achievement-count { display: inline-grid; min-width: 18px; height: 18px; padding: 0 4px; place-items: center; border-radius: 9px; background: var(--background-modifier-hover); color: var(--text-faint); font-size: 9px; }
+.q-achievement[draggable="true"] { cursor: grab; }
+.q-achievement.is-dragging { opacity: .35; }
+.q-achievements.is-drop-target { outline: 1px dashed var(--q-gold); outline-offset: 4px; border-radius: 8px; }
 .q-achievement { display: flex; align-items: center; gap: 9px; border: 1px solid var(--q-border); background: var(--q-panel); border-radius: 9px; padding: 8px; opacity: .55; }
 .q-achievement.is-unlocked { opacity: 1; border-color: #806b48; background: linear-gradient(90deg,rgba(214,173,98,.10),var(--q-panel)); }
 .q-achievement-icon { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 8px; background: var(--background-primary); color: var(--q-gold); font-size: 17px; }
